@@ -1,0 +1,17 @@
+name: Extra
+on:
+  pull_request:
+  merge_group:
+  workflow_call:
+    inputs:
+      checkout-ref:
+        required: true
+        type: string
+jobs:
+  extra:
+    name: Extra
+    # Skipped in the queue unless called.
+    if: inputs.checkout-ref != '' || github.event_name != 'merge_group'
+    runs-on: ubuntu-latest
+    steps:
+    - run: echo extra
