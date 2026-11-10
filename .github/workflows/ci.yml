@@ -1,0 +1,24 @@
+name: CI
+on:
+  pull_request:
+  merge_group:
+jobs:
+  validate:
+    name: Full validation
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 20
+    - name: Show the event
+      run: |
+        echo "event=${{ github.event_name }} ref=${{ github.ref }} sha=${{ github.sha }}"
+        echo "base_sha=${{ github.event.merge_group.base_sha }}"
+        echo "head_sha=${{ github.event.merge_group.head_sha }}"
+        echo "head_ref=${{ github.event.merge_group.head_ref }}"
+        git log --oneline --graph -n 8
+    - name: Stand in for a long validation
+      if: github.event_name == 'merge_group'
+      run: sleep 150
+    - name: Fail when the tree holds a FAIL file
+      run: test ! -f FAIL
