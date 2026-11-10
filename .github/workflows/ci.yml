@@ -6,7 +6,21 @@ permissions:
   contents: read
   statuses: write
 jobs:
+  wait:
+    runs-on: ubuntu-latest
+    steps:
+    - run: sleep ${{ github.event_name == 'merge_group' && 120 || 0 }}
+  late-checkout:
+    needs: wait
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.merge_group.head_sha || github.event.pull_request.head.sha }}
+        persist-credentials: false
+    - run: git log --oneline -3
   status:
+    needs: late-checkout
     runs-on: ubuntu-latest
     steps:
     - uses: actions/github-script@v7
@@ -14,6 +28,5 @@ jobs:
         script: |
           const queue = context.eventName === 'merge_group';
           const sha = queue ? context.payload.merge_group.head_sha : context.payload.pull_request.head.sha;
-          await new Promise(resolve => setTimeout(resolve, queue ? 30000 : 0));
           await github.rest.repos.createCommitStatus({...context.repo, sha, context: 'Full validation',
             state: 'success', description: queue ? 'Queue run passed' : 'Full runs in the merge queue'});
