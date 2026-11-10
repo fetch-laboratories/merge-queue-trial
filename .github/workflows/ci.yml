@@ -19,6 +19,7 @@ jobs:
         git log --oneline --graph -n 8
     - name: Stand in for a long validation
       if: github.event_name == 'merge_group'
-      run: sleep 150
-    - name: Fail when the tree holds a FAIL file
-      run: test ! -f FAIL
+      run: sleep 100
+    - name: Fail in the queue when the tree holds FAIL-IN-QUEUE
+      if: github.event_name == 'merge_group'
+      run: test ! -f FAIL-IN-QUEUE
